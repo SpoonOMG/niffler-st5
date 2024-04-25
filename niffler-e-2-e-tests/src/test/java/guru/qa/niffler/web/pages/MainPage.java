@@ -27,13 +27,13 @@ public class MainPage {
         return this;
     }
 
-    public MainPage mainPageButtonClick() {
+    public MainPage clickMainPageButton() {
         mainPageButton.click();
 
         return this;
     }
 
-    public MainPage friendsButtonClick() {
+    public MainPage clickFriendsButton() {
         friendsButton.click();
 
         return this;
@@ -80,8 +80,8 @@ public class MainPage {
         return this;
     }
 
-    public MainPage spendingsShouldHaveSizeNull(){
-        historyOfSpendingComponent.tableBodyShouldHaveSizeNull();
+    public MainPage spendingsShouldBeEmpty(){
+        historyOfSpendingComponent.tableBodyShouldHaveEmpty();
         return this;
     }
 }

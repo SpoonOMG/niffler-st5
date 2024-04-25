@@ -1,16 +1,11 @@
 package guru.qa.niffler.web.components;
 
 import com.codeborne.selenide.SelenideElement;
-import com.codeborne.selenide.selector.ByText;
-import guru.qa.niffler.web.pages.MainPage;
-
-import java.util.List;
 
 import static com.codeborne.selenide.CollectionCondition.size;
 import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Selectors.byText;
 import static com.codeborne.selenide.Selenide.$;
-import static com.codeborne.selenide.Selenide.$x;
 
 public class HistoryOfSpendingComponent {
 
@@ -80,7 +75,7 @@ public class HistoryOfSpendingComponent {
         return this;
     }
 
-    public HistoryOfSpendingComponent tableBodyShouldHaveSizeNull(){
+    public HistoryOfSpendingComponent tableBodyShouldHaveEmpty(){
         tableBody.$$("tr").shouldHave(size(0));
         return this;
     }

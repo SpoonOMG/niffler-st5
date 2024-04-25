@@ -2,7 +2,6 @@ package guru.qa.niffler.test;
 
 import com.codeborne.selenide.Configuration;
 import com.codeborne.selenide.Selenide;
-import com.codeborne.selenide.SelenideElement;
 import guru.qa.niffler.jupiter.annotation.GenerateCategory;
 import guru.qa.niffler.jupiter.annotation.Spend;
 import guru.qa.niffler.jupiter.extension.GenerateCategoryExtension;
@@ -10,13 +9,10 @@ import guru.qa.niffler.jupiter.extension.SpendExtension;
 import guru.qa.niffler.model.CurrencyValues;
 import guru.qa.niffler.model.SpendJson;
 import guru.qa.niffler.web.pages.MainPage;
-import guru.qa.niffler.web.pages.PreLoginPage;
-import org.junit.jupiter.api.BeforeEach;
+import guru.qa.niffler.web.pages.WelcomePage;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 
-import static com.codeborne.selenide.CollectionCondition.size;
-import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Condition.visible;
 import static com.codeborne.selenide.Selenide.$;
 import static com.codeborne.selenide.Selenide.open;
@@ -27,9 +23,9 @@ import guru.qa.niffler.web.pages.LoginPage;
         SpendExtension.class,
 })
 public class SpendingTest {
-    PreLoginPage plp = new PreLoginPage();
-    LoginPage lp = new LoginPage();
-    MainPage mp = new MainPage();
+    WelcomePage welcomePage = new WelcomePage();
+    LoginPage loginPage = new LoginPage();
+    MainPage mainPage = new MainPage();
 
     static {
         Configuration.browserSize = "1920x1080";
@@ -55,17 +51,14 @@ public class SpendingTest {
     @Test
     void spendingShouldBeDeletedAfterTableAction(SpendJson spendJson) {
         Selenide.open("http://127.0.0.1:3000/");
-        plp
-                .loginButtonClick();
-        lp
-                .setUserName("spoon")
+        welcomePage.clickLoginButton();
+        loginPage.setUserName("spoon")
                 .setPassword("12345")
                 .signIn();
-        mp
-                .scrollToSpending()
+        mainPage.scrollToSpending()
                 .selectFirstRowWithSpendingByText(spendJson.description())
                 .deleteSelectedButtonClick()
-                .spendingsShouldHaveSizeNull();
+                .spendingsShouldBeEmpty();
     }
 
 }

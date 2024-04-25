@@ -1,8 +1,7 @@
 package guru.qa.niffler.jupiter.extension;
 
-import guru.qa.niffler.api.GenerateCategoryApi;
+import guru.qa.niffler.api.CategoryApi;
 import guru.qa.niffler.jupiter.annotation.GenerateCategory;
-import guru.qa.niffler.jupiter.annotation.Spend;
 import guru.qa.niffler.model.CategoryJson;
 import okhttp3.OkHttpClient;
 import org.junit.jupiter.api.extension.*;
@@ -29,18 +28,18 @@ public class GenerateCategoryExtension implements BeforeEachCallback, ParameterR
 
     @Override
     public void beforeEach(ExtensionContext context) throws Exception {
-        GenerateCategoryApi generateCategoryApi = retrofit.create(GenerateCategoryApi.class);
+        CategoryApi categoryApi = retrofit.create(CategoryApi.class);
 
         AnnotationSupport.findAnnotation(
                 context.getRequiredTestMethod(),
                 GenerateCategory.class).ifPresent(generateCategory -> {
             CategoryJson categoryJson = new CategoryJson(
-                    UUID.randomUUID(),
+                    null,
                     generateCategory.category(),
                     generateCategory.username()
             );
             try{
-                CategoryJson result = generateCategoryApi.createCategory(categoryJson).execute().body();
+                CategoryJson result = categoryApi.createCategory(categoryJson).execute().body();
                 context.getStore(NAMESPACE).put("category", result);
             } catch (IOException e) {
                 throw new RuntimeException(e);
