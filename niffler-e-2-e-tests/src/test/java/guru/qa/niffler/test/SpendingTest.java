@@ -4,6 +4,7 @@ import com.codeborne.selenide.Configuration;
 import com.codeborne.selenide.Selenide;
 import guru.qa.niffler.jupiter.annotation.GenerateCategory;
 import guru.qa.niffler.jupiter.annotation.Spend;
+import guru.qa.niffler.jupiter.annotation.meta.WebTest;
 import guru.qa.niffler.jupiter.extension.GenerateCategoryExtension;
 import guru.qa.niffler.jupiter.extension.SpendExtension;
 import guru.qa.niffler.model.CurrencyValues;
@@ -19,9 +20,7 @@ import static com.codeborne.selenide.Selenide.open;
 
 import guru.qa.niffler.web.pages.LoginPage;
 
-@ExtendWith({GenerateCategoryExtension.class,
-        SpendExtension.class,
-})
+@WebTest
 public class SpendingTest {
     WelcomePage welcomePage = new WelcomePage();
     LoginPage loginPage = new LoginPage();
@@ -47,6 +46,7 @@ public class SpendingTest {
             amount = 65000.00,
             currency = CurrencyValues.RUB,
             category = "Расходы на кота"
+
     )
     @Test
     void spendingShouldBeDeletedAfterTableAction(SpendJson spendJson) {

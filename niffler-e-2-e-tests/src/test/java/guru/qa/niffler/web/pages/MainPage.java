@@ -39,7 +39,7 @@ public class MainPage {
         return this;
     }
 
-    public MainPage allPeopleButtonClick() {
+    public MainPage clickAllPeopleButton() {
         allPeopleButton.click();
 
         return this;

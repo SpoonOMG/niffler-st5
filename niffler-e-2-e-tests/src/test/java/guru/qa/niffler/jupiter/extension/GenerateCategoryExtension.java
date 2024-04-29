@@ -10,7 +10,6 @@ import retrofit2.Retrofit;
 import retrofit2.converter.jackson.JacksonConverterFactory;
 
 import java.io.IOException;
-import java.util.UUID;
 
 public class GenerateCategoryExtension implements BeforeEachCallback, ParameterResolver {
 
@@ -38,9 +37,10 @@ public class GenerateCategoryExtension implements BeforeEachCallback, ParameterR
                     generateCategory.category(),
                     generateCategory.username()
             );
+
             try{
                 CategoryJson result = categoryApi.createCategory(categoryJson).execute().body();
-                context.getStore(NAMESPACE).put("category", result);
+                context.getStore(NAMESPACE).put(context.getUniqueId(), result);
             } catch (IOException e) {
                 throw new RuntimeException(e);
             }
@@ -54,6 +54,6 @@ public class GenerateCategoryExtension implements BeforeEachCallback, ParameterR
 
     @Override
     public Object resolveParameter(ParameterContext parameterContext, ExtensionContext extensionContext) throws ParameterResolutionException {
-        return extensionContext.getStore(NAMESPACE).get("category");
+        return extensionContext.getStore(NAMESPACE).get(extensionContext.getUniqueId());
     }
 }
