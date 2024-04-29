@@ -2,6 +2,7 @@ package guru.qa.niffler.model;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
+
 import java.util.UUID;
 
 public record CategoryJson(
@@ -12,4 +13,5 @@ public record CategoryJson(
         @JsonProperty("username")
         String username) {
 
-}
+    }
+

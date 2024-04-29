@@ -2,42 +2,32 @@ package guru.qa.niffler.test;
 
 import com.codeborne.selenide.Configuration;
 import com.codeborne.selenide.Selenide;
-import com.codeborne.selenide.SelenideElement;
-import guru.qa.niffler.jupiter.annotation.Category;
+import guru.qa.niffler.jupiter.annotation.GenerateCategory;
 import guru.qa.niffler.jupiter.annotation.Spend;
 import guru.qa.niffler.jupiter.annotation.meta.WebTest;
+import guru.qa.niffler.jupiter.extension.GenerateCategoryExtension;
+import guru.qa.niffler.jupiter.extension.SpendExtension;
 import guru.qa.niffler.model.CurrencyValues;
 import guru.qa.niffler.model.SpendJson;
-import io.qameta.allure.Allure;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
+import guru.qa.niffler.web.pages.MainPage;
+import guru.qa.niffler.web.pages.WelcomePage;
 import org.junit.jupiter.api.Test;
-import org.openqa.selenium.OutputType;
+import org.junit.jupiter.api.extension.ExtendWith;
 
-import java.io.ByteArrayInputStream;
-import java.util.Objects;
-
-import static com.codeborne.selenide.CollectionCondition.size;
-import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Condition.visible;
 import static com.codeborne.selenide.Selenide.$;
+import static com.codeborne.selenide.Selenide.open;
 
+import guru.qa.niffler.web.pages.LoginPage;
 
 @WebTest
 public class SpendingTest {
+    WelcomePage welcomePage = new WelcomePage();
+    LoginPage loginPage = new LoginPage();
+    MainPage mainPage = new MainPage();
 
     static {
         Configuration.browserSize = "1920x1080";
-    }
-
-    @BeforeEach
-    void doLogin() {
-        // createSpend
-        Selenide.open("http://127.0.0.1:3000/");
-        $("a[href*='redirect']").click();
-        $("input[name='username']").setValue("dima");
-        $("input[name='password']").setValue("12345");
-        $("button[type='submit']").click();
     }
 
     @Test
@@ -46,38 +36,29 @@ public class SpendingTest {
         $("a[href*='redirect']").should(visible);
     }
 
-    @AfterEach
-    void doScreenshot() {
-        Allure.addAttachment(
-                "Screen on test end",
-                new ByteArrayInputStream(
-                        Objects.requireNonNull(
-                                Selenide.screenshot(OutputType.BYTES)
-                        )
-                )
-        );
-    }
-
-    @Category(
-            category = "Обучение3",
-            username = "dima"
+    @GenerateCategory(
+            username = "spoon",
+            category = "Расходы на кота"
     )
     @Spend(
+            username = "spoon",
             description = "QA.GURU Advanced 5",
             amount = 65000.00,
-            currency = CurrencyValues.RUB
+            currency = CurrencyValues.RUB,
+            category = "Расходы на кота"
+
     )
     @Test
     void spendingShouldBeDeletedAfterTableAction(SpendJson spendJson) {
-        SelenideElement rowWithSpending = $(".spendings-table tbody")
-                .$$("tr")
-                .find(text(spendJson.description()))
-                .scrollIntoView(false);
-
-        rowWithSpending.$$("td").first().click();
-        $(".spendings__bulk-actions button").click();
-
-        $(".spendings-table tbody").$$("tr")
-                .shouldHave(size(0));
+        Selenide.open("http://127.0.0.1:3000/");
+        welcomePage.clickLoginButton();
+        loginPage.setUserName("spoon")
+                .setPassword("12345")
+                .signIn();
+        mainPage.scrollToSpending()
+                .selectFirstRowWithSpendingByText(spendJson.description())
+                .deleteSelectedButtonClick()
+                .spendingsShouldBeEmpty();
     }
+
 }
