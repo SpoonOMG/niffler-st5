@@ -16,5 +16,6 @@ public @interface Spend {
     double amount();
 
     String description();
-
+    String username();
+    String category();
 }
