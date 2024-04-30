@@ -1,19 +1,20 @@
 package guru.qa.niffler.jupiter.extension;
 
+import guru.qa.niffler.jupiter.annotation.User;
 import guru.qa.niffler.model.UserJson;
-import io.qameta.allure.Allure;
 import org.junit.jupiter.api.extension.AfterEachCallback;
 import org.junit.jupiter.api.extension.BeforeEachCallback;
 import org.junit.jupiter.api.extension.ExtensionContext;
 import org.junit.jupiter.api.extension.ParameterContext;
-import org.junit.jupiter.api.extension.ParameterResolutionException;
 import org.junit.jupiter.api.extension.ParameterResolver;
 
-import java.util.Date;
+import java.lang.reflect.Parameter;
+import java.util.List;
+import java.util.Map;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
-import static guru.qa.niffler.model.UserJson.simpleUser;
+import static guru.qa.niffler.model.UserJson.*;
 
 // Любой тест проходит через него
 public class UserQueueExtension implements
@@ -24,45 +25,65 @@ public class UserQueueExtension implements
     public static final ExtensionContext.Namespace NAMESPACE
             = ExtensionContext.Namespace.create(UserQueueExtension.class);
 
-    private static final Queue<UserJson> USERS = new ConcurrentLinkedQueue<>();
+    private static final Queue<UserJson> WITH_FRIENDS_QUEUE = new ConcurrentLinkedQueue<>();
+    private static final Queue<UserJson> INVITATIONS_SENT_QUEUE = new ConcurrentLinkedQueue<>();
+    private static final Queue<UserJson> INVITATION_RECEIVED_QUEUE = new ConcurrentLinkedQueue<>();
 
     static {
-        USERS.add(simpleUser("dima", "12345"));
-        USERS.add(simpleUser("duck", "12345"));
-        USERS.add(simpleUser("barsik", "12345"));
+        WITH_FRIENDS_QUEUE.add(simpleUser("spoonomg", "12345"));
+        WITH_FRIENDS_QUEUE.add(simpleUser("spoon", "12345"));
+
+        INVITATIONS_SENT_QUEUE.add(simpleUser("spoonwtf", "12345"));
+        INVITATIONS_SENT_QUEUE.add(simpleUser("spoonsht", "12345"));
+
+        INVITATION_RECEIVED_QUEUE.add(simpleUser("spoonlol", "12345"));
+        INVITATION_RECEIVED_QUEUE.add(simpleUser("spoonwtb", "12345"));
     }
 
 
     @Override
     public void beforeEach(ExtensionContext context) throws Exception {
-        UserJson userForTest = null;
-        while (userForTest == null) {
-            userForTest = USERS.poll();
+        Parameter[] testParameters = context.getRequiredTestMethod().getParameters();
+        for (Parameter parameter : testParameters) {
+            User desiredUser = parameter.getAnnotation(User.class);
+            if (desiredUser != null) {
+                User.Selector selector = desiredUser.selector();
+                UserJson userForTest = null;
+                while (userForTest == null) {
+                    switch (selector) {
+                        case WITH_FRIENDS -> userForTest = WITH_FRIENDS_QUEUE.poll();
+                        case INVITATION_SENT -> userForTest = INVITATIONS_SENT_QUEUE.poll();
+                        case INVITATION_RECEIVED -> userForTest = INVITATION_RECEIVED_QUEUE.poll();
+                    }
+                }
+                context.getStore(NAMESPACE).put(context.getUniqueId(), Map.of(selector, userForTest));
+            }
         }
-        Allure.getLifecycle().updateTestCase(testCase -> {
-            testCase.setStart(new Date().getTime());
-        });
-        context.getStore(NAMESPACE).put(context.getUniqueId(), userForTest);
     }
 
     @Override
     public void afterEach(ExtensionContext context) throws Exception {
-        UserJson userFromTest = context.getStore(NAMESPACE).get(context.getUniqueId(), UserJson.class);
-        USERS.add(userFromTest);
+
+
+        Map<User.Selector, UserJson> users = (Map<User.Selector, UserJson>) context.getStore(NAMESPACE).get(context.getUniqueId());
+        User.Selector selector = users.keySet().iterator().next();
+        switch (selector) {
+            case WITH_FRIENDS -> WITH_FRIENDS_QUEUE.add(users.get(selector));
+            case INVITATION_SENT -> INVITATIONS_SENT_QUEUE.add(users.get(selector));
+            case INVITATION_RECEIVED -> INVITATION_RECEIVED_QUEUE.add(users.get(selector));
+        }
     }
 
 
     @Override
-    public boolean supportsParameter(ParameterContext parameterContext, ExtensionContext extensionContext) throws ParameterResolutionException {
-        return parameterContext
-                .getParameter()
-                .getType()
-                .isAssignableFrom(UserJson.class);
+    public boolean supportsParameter(ParameterContext parameterContext, ExtensionContext extensionContext) {
+        return parameterContext.getParameter().getType().isAssignableFrom(UserJson.class)
+                && parameterContext.getParameter().isAnnotationPresent(User.class);
     }
 
     @Override
-    public UserJson resolveParameter(ParameterContext parameterContext, ExtensionContext extensionContext) throws ParameterResolutionException {
-        return extensionContext.getStore(NAMESPACE)
-                .get(extensionContext.getUniqueId(), UserJson.class);
+    public Object resolveParameter(ParameterContext parameterContext, ExtensionContext extensionContext) {
+        User.Selector selector = parameterContext.getParameter().getAnnotation(User.class).selector();
+        return extensionContext.getStore(NAMESPACE).get(extensionContext.getUniqueId(), Map.class).get(selector);
     }
 }
