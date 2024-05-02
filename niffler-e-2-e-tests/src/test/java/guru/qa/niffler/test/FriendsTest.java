@@ -10,12 +10,11 @@ import guru.qa.niffler.web.pages.AllPeoplePage;
 import guru.qa.niffler.web.pages.LoginPage;
 import guru.qa.niffler.web.pages.MainPage;
 import guru.qa.niffler.web.pages.WelcomePage;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 
-import static guru.qa.niffler.jupiter.annotation.User.Selector.INVITATION_SENT;
-import static guru.qa.niffler.jupiter.annotation.User.Selector.WITH_FRIENDS;
-import static guru.qa.niffler.model.UserJson.simpleUser;
+import static guru.qa.niffler.jupiter.annotation.User.Selector.*;
 
 @WebTest
 @ExtendWith(UserQueueExtension.class)
@@ -29,60 +28,45 @@ public class FriendsTest {
         Configuration.browserSize = "1920x1080";
     }
 
-//    @Test
-//    void invitationSendTest(){
-//        Selenide.open("http://127.0.0.1:3000/");
-//        welcomePage.clickLoginButton();
-//        loginPage.setUserName("spoon")
-//                .setPassword("12345")
-//                .signIn();
-//        mainPage.clickAllPeopleButton();
-//        allPeoplePage.isFriends("spoonomg");
-//    }
-//
-//    @Test
-//    void invitationRecievedTest(){
-//        Selenide.open("http://127.0.0.1:3000/");
-//        welcomePage.clickLoginButton();
-//        loginPage.setUserName("spoon")
-//                .setPassword("12345")
-//                .signIn();
-//        mainPage.clickAllPeopleButton();
-//        allPeoplePage.isFriends("spoonomg");
-//    }
-//
-//    @Test
-//    void friendsTest(){
-//        Selenide.open("http://127.0.0.1:3000/");
-//        welcomePage.clickLoginButton();
-//        loginPage.setUserName("spoon")
-//                .setPassword("12345")
-//                .signIn();
-//        mainPage.clickAllPeopleButton();
-//        allPeoplePage.isFriends("spoonomg");
-//    }
 
     @Test
-    void test1(@User (selector = WITH_FRIENDS ) UserJson userForTest,
-              @User (selector = WITH_FRIENDS) UserJson userFromTest){
+    @DisplayName("User is friend for spoonomg and recieved invite from spoonlol")
+    void friendsAndRecievedTest(@User(selector = INVITATION_RECEIVED) UserJson userForTest,
+               @User(selector = WITH_FRIENDS) UserJson userFromTest) {
         Selenide.open("http://127.0.0.1:3000/");
         welcomePage.clickLoginButton();
-        loginPage.setUserName(userForTest.username())
+        loginPage.setUserName("user")
                 .setPassword("12345")
                 .signIn();
         mainPage.clickAllPeopleButton();
         allPeoplePage.isFriends(userFromTest.username());
+        allPeoplePage.isInvitationRecieved(userForTest.username());
     }
 
     @Test
-    void test2(@User (selector = WITH_FRIENDS ) UserJson userForTest,
-              @User (selector = WITH_FRIENDS) UserJson userFromTest){
+    @DisplayName("User is friend for spoonomg and sent invite to spoonsht")
+    void friendsAndSentTest(@User(selector = INVITATION_SENT) UserJson userForTest,
+               @User(selector = WITH_FRIENDS) UserJson userFromTest) {
         Selenide.open("http://127.0.0.1:3000/");
         welcomePage.clickLoginButton();
-        loginPage.setUserName(userForTest.username())
+        loginPage.setUserName("user")
                 .setPassword("12345")
                 .signIn();
         mainPage.clickAllPeopleButton();
         allPeoplePage.isFriends(userFromTest.username());
+        allPeoplePage.isPendingInvitation(userForTest.username());
     }
+
+    @Test
+    @DisplayName("user is friend with spoonomg")
+    void friendsTest(@User(selector = WITH_FRIENDS) UserJson userForTest) {
+        Selenide.open("http://127.0.0.1:3000/");
+        welcomePage.clickLoginButton();
+        loginPage.setUserName("user")
+                .setPassword("12345")
+                .signIn();
+        mainPage.clickAllPeopleButton();
+        allPeoplePage.isFriends(userForTest.username());
+    }
+
 }

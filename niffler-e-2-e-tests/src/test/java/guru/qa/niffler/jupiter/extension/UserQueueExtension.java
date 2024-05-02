@@ -2,78 +2,90 @@ package guru.qa.niffler.jupiter.extension;
 
 import guru.qa.niffler.jupiter.annotation.User;
 import guru.qa.niffler.model.UserJson;
-import org.junit.jupiter.api.extension.AfterEachCallback;
-import org.junit.jupiter.api.extension.BeforeEachCallback;
-import org.junit.jupiter.api.extension.ExtensionContext;
-import org.junit.jupiter.api.extension.ParameterContext;
-import org.junit.jupiter.api.extension.ParameterResolver;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.extension.*;
 
+import java.lang.reflect.Method;
 import java.lang.reflect.Parameter;
-import java.util.List;
-import java.util.Map;
-import java.util.Queue;
+import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
-import static guru.qa.niffler.model.UserJson.*;
+import static guru.qa.niffler.model.UserJson.simpleUser;
 
-// Любой тест проходит через него
-public class UserQueueExtension implements
-        BeforeEachCallback,
-        AfterEachCallback,
-        ParameterResolver {
+public class UserQueueExtension implements BeforeEachCallback, AfterEachCallback, ParameterResolver {
 
     public static final ExtensionContext.Namespace NAMESPACE
             = ExtensionContext.Namespace.create(UserQueueExtension.class);
 
-    private static final Queue<UserJson> WITH_FRIENDS_QUEUE = new ConcurrentLinkedQueue<>();
-    private static final Queue<UserJson> INVITATIONS_SENT_QUEUE = new ConcurrentLinkedQueue<>();
-    private static final Queue<UserJson> INVITATION_RECEIVED_QUEUE = new ConcurrentLinkedQueue<>();
+    private static final Map<User.Selector, Queue<UserJson>> USERS = new ConcurrentHashMap<>();
 
     static {
-        WITH_FRIENDS_QUEUE.add(simpleUser("spoonomg", "12345"));
-        WITH_FRIENDS_QUEUE.add(simpleUser("spoon", "12345"));
+        USERS.put(User.Selector.WITH_FRIENDS, new ConcurrentLinkedQueue<>(
+                List.of(simpleUser("spoonomg", "12345"), simpleUser("spoon", "12345")))
+        );
+        USERS.put(User.Selector.INVITATION_RECEIVED, new ConcurrentLinkedQueue<>(
+                List.of(simpleUser("spoonlol", "12345"), simpleUser("spoonwtb", "12345")))
+        );
+        USERS.put(User.Selector.INVITATION_SENT, new ConcurrentLinkedQueue<>(
+                List.of(simpleUser("spoonsht", "12345"), simpleUser("spoonwtf", "12345")))
+        );
 
-        INVITATIONS_SENT_QUEUE.add(simpleUser("spoonwtf", "12345"));
-        INVITATIONS_SENT_QUEUE.add(simpleUser("spoonsht", "12345"));
-
-        INVITATION_RECEIVED_QUEUE.add(simpleUser("spoonlol", "12345"));
-        INVITATION_RECEIVED_QUEUE.add(simpleUser("spoonwtb", "12345"));
     }
 
-
     @Override
-    public void beforeEach(ExtensionContext context) throws Exception {
-        Parameter[] testParameters = context.getRequiredTestMethod().getParameters();
-        for (Parameter parameter : testParameters) {
-            User desiredUser = parameter.getAnnotation(User.class);
-            if (desiredUser != null) {
-                User.Selector selector = desiredUser.selector();
-                UserJson userForTest = null;
-                while (userForTest == null) {
-                    switch (selector) {
-                        case WITH_FRIENDS -> userForTest = WITH_FRIENDS_QUEUE.poll();
-                        case INVITATION_SENT -> userForTest = INVITATIONS_SENT_QUEUE.poll();
-                        case INVITATION_RECEIVED -> userForTest = INVITATION_RECEIVED_QUEUE.poll();
-                    }
-                }
-                context.getStore(NAMESPACE).put(context.getUniqueId(), Map.of(selector, userForTest));
+    public void beforeEach(ExtensionContext context) {
+        // Получение тестового метода
+        Method testMethod = context.getRequiredTestMethod();
+        // Получение @BeforeEach-методов
+        List<Method> beforeEachMethods = Arrays.stream(
+                context.getRequiredTestClass().getDeclaredMethods()
+        ).filter(i -> i.isAnnotationPresent(BeforeEach.class)).toList();
+
+        // Общий список методов, которые необходимо обработать
+        List<Method> methods = new ArrayList<>();
+        methods.add(testMethod);
+        methods.addAll(beforeEachMethods);
+        // Общий список параметров, которые мы хотим обработать
+        List<Parameter> parameters = methods.stream()
+                .flatMap(m -> Arrays.stream(m.getParameters()))
+                .filter(p -> p.isAnnotationPresent(User.class))
+                .toList();
+        // Объект, где хранятся тип пользователя и сам пользователь. Далее будет сохранен в store
+        Map<User.Selector, UserJson> users = new HashMap<>();
+        // Обрабатываем каждый из полученных параметров
+        for (Parameter parameter : parameters) {
+            User.Selector selector = parameter.getAnnotation(User.class).selector();
+            // Данный тип пользователя обрабатывался ранее
+            if (users.containsKey(selector)) {
+                continue;
             }
+            UserJson userForTest = null;
+
+            // Получение очереди с необходимым типом пользователей
+            Queue<UserJson> queue = USERS.get(selector);
+
+            // "Умное ожидание" пользователя
+            while (userForTest == null) {
+                userForTest = queue.poll();
+            }
+            // Добавляем полученного из очереди пользователя в наш объект
+            users.put(selector, userForTest);
         }
+        // Сохраняем данные о пользователях в store
+        context.getStore(NAMESPACE).put(context.getUniqueId(), users);
     }
+
 
     @Override
-    public void afterEach(ExtensionContext context) throws Exception {
-
-
-        Map<User.Selector, UserJson> users = (Map<User.Selector, UserJson>) context.getStore(NAMESPACE).get(context.getUniqueId());
-        User.Selector selector = users.keySet().iterator().next();
-        switch (selector) {
-            case WITH_FRIENDS -> WITH_FRIENDS_QUEUE.add(users.get(selector));
-            case INVITATION_SENT -> INVITATIONS_SENT_QUEUE.add(users.get(selector));
-            case INVITATION_RECEIVED -> INVITATION_RECEIVED_QUEUE.add(users.get(selector));
+    public void afterEach(ExtensionContext extensionContext) {
+        // Получаем мапу из хранилища
+        Map<User.Selector, UserJson> users = extensionContext.getStore(NAMESPACE).get(extensionContext.getUniqueId(), Map.class);
+        for (Map.Entry<User.Selector, UserJson> user : users.entrySet()) {
+            // Возвращаем обратно пользователя в соотвествующую очередь
+            USERS.get(user.getKey()).add(user.getValue());
         }
     }
-
 
     @Override
     public boolean supportsParameter(ParameterContext parameterContext, ExtensionContext extensionContext) {
