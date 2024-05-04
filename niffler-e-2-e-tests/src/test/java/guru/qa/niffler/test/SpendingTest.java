@@ -2,6 +2,7 @@ package guru.qa.niffler.test;
 
 import com.codeborne.selenide.Configuration;
 import com.codeborne.selenide.Selenide;
+import guru.qa.niffler.jupiter.annotation.CategoryExtensionDB;
 import guru.qa.niffler.jupiter.annotation.GenerateCategory;
 import guru.qa.niffler.jupiter.annotation.Spend;
 import guru.qa.niffler.jupiter.annotation.meta.WebTest;
@@ -21,6 +22,7 @@ import static com.codeborne.selenide.Selenide.open;
 import guru.qa.niffler.web.pages.LoginPage;
 
 @WebTest
+
 public class SpendingTest {
     WelcomePage welcomePage = new WelcomePage();
     LoginPage loginPage = new LoginPage();
@@ -36,17 +38,21 @@ public class SpendingTest {
         $("a[href*='redirect']").should(visible);
     }
 
-    @GenerateCategory(
-            username = "spoon",
-            category = "Расходы на кота"
-    )
+//    @GenerateCategory(
+//            username = "spoon",
+//            category = "Расходы на котиков"
+//    )
     @Spend(
             username = "spoon",
             description = "QA.GURU Advanced 5",
             amount = 65000.00,
             currency = CurrencyValues.RUB,
-            category = "Расходы на кота"
+            category = "котиков в расход"
 
+    )
+    @CategoryExtensionDB(
+            username = "spoon",
+            category = "котиков в расход"
     )
     @Test
     void spendingShouldBeDeletedAfterTableAction(SpendJson spendJson) {
