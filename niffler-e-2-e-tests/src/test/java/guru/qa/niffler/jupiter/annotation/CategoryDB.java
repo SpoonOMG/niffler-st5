@@ -7,7 +7,7 @@ import java.lang.annotation.Target;
 
 @Retention(RetentionPolicy.RUNTIME)
 @Target({ElementType.METHOD, ElementType.ANNOTATION_TYPE})
-public @interface CategoryExtensionDB {
+public @interface CategoryDB {
     String category();
 
     String username();

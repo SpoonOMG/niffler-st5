@@ -1,25 +1,12 @@
 package guru.qa.niffler.jupiter.extension;
 
-import guru.qa.niffler.api.SpendApi;
 import guru.qa.niffler.data.entity.CategoryEntity;
 import guru.qa.niffler.data.repository.SpendRepository;
 import guru.qa.niffler.data.repository.SpendRepositoryJdbc;
-import guru.qa.niffler.jupiter.annotation.Category;
+import guru.qa.niffler.jupiter.annotation.CategoryDB;
 import guru.qa.niffler.model.CategoryJson;
-import okhttp3.OkHttpClient;
-import okhttp3.logging.HttpLoggingInterceptor;
-import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.extension.AfterEachCallback;
-import org.junit.jupiter.api.extension.BeforeEachCallback;
-import org.junit.jupiter.api.extension.ExtensionContext;
+import org.junit.jupiter.api.extension.*;
 import org.junit.platform.commons.support.AnnotationSupport;
-import retrofit2.Retrofit;
-import retrofit2.converter.jackson.JacksonConverterFactory;
-
-import java.io.IOException;
-import java.util.Objects;
-
-import static okhttp3.logging.HttpLoggingInterceptor.Level.BODY;
 
 public class CategoryExtensionDB implements BeforeEachCallback, AfterEachCallback {
 
@@ -32,7 +19,7 @@ public class CategoryExtensionDB implements BeforeEachCallback, AfterEachCallbac
 
         AnnotationSupport.findAnnotation(
                 extensionContext.getRequiredTestMethod(),
-                guru.qa.niffler.jupiter.annotation.CategoryExtensionDB.class
+                CategoryDB.class
         ).ifPresent(
                 cat -> {
 
