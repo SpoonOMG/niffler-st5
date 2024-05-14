@@ -39,8 +39,8 @@ public class FriendsTest {
                 .setPassword("12345")
                 .signIn();
         mainPage.clickAllPeopleButton();
-        allPeoplePage.isFriends(userFromTest.username());
-        allPeoplePage.isInvitationRecieved(userForTest.username());
+        allPeoplePage.friendsCheck(userFromTest.username());
+        allPeoplePage.invitationRecievedCheck(userForTest.username());
     }
 
     @Test
@@ -53,8 +53,8 @@ public class FriendsTest {
                 .setPassword("12345")
                 .signIn();
         mainPage.clickAllPeopleButton();
-        allPeoplePage.isFriends(userFromTest.username());
-        allPeoplePage.isPendingInvitation(userForTest.username());
+        allPeoplePage.friendsCheck(userFromTest.username());
+        allPeoplePage.pendingIvitationCheck(userForTest.username());
     }
 
     @Test
@@ -66,7 +66,7 @@ public class FriendsTest {
                 .setPassword("12345")
                 .signIn();
         mainPage.clickAllPeopleButton();
-        allPeoplePage.isFriends(userForTest.username());
+        allPeoplePage.friendsCheck(userForTest.username());
     }
 
 }

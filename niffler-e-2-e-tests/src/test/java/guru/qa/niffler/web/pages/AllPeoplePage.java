@@ -10,25 +10,22 @@ import static com.codeborne.selenide.Selenide.$;
 public class AllPeoplePage {
 
 
-    final ElementsCollection
+    private final ElementsCollection
             tableRows = $(".abstract-table tbody").$$("tr");
 
-    public SelenideElement findUserByRow (String username) {
+    private SelenideElement findUserByRow (String username) {
         return tableRows.find((text(username)));
     }
 
-    public boolean isPendingInvitation(String username){
+    public void pendingIvitationCheck(String username){
         findUserByRow(username).lastChild().$(".abstract-table__buttons").shouldHave(text("Pending invitation"));
-        return true;
     }
 
-    public boolean isInvitationRecieved(String username){
+    public void invitationRecievedCheck(String username){
         findUserByRow(username).lastChild().$(".abstract-table__buttons div").shouldHave(attribute("data-tooltip-id","submit-invitation"));
-        return true;
     }
 
-    public boolean isFriends(String username){
+    public void friendsCheck(String username){
         findUserByRow(username).lastChild().$(".abstract-table__buttons").shouldHave(text("You are friends"));
-        return true;
     }
 }
