@@ -7,19 +7,17 @@ import guru.qa.niffler.jupiter.annotation.Spend;
 import guru.qa.niffler.jupiter.annotation.meta.WebTest;
 import guru.qa.niffler.model.CurrencyValues;
 import guru.qa.niffler.model.SpendJson;
+import guru.qa.niffler.web.pages.LoginPage;
 import guru.qa.niffler.web.pages.MainPage;
 import guru.qa.niffler.web.pages.WelcomePage;
 import org.junit.jupiter.api.Test;
 
 import static com.codeborne.selenide.Condition.visible;
 import static com.codeborne.selenide.Selenide.$;
-import static com.codeborne.selenide.Selenide.open;
-
-import guru.qa.niffler.web.pages.LoginPage;
 
 @WebTest
 
-public class SpendingTest {
+public class SpendingJdbcTest {
     WelcomePage welcomePage = new WelcomePage();
     LoginPage loginPage = new LoginPage();
     MainPage mainPage = new MainPage();
